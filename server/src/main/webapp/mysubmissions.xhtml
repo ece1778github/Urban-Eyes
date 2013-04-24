@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	template="/WEB-INF/templates/default.xhtml"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:s="http://jboss.org/seam/faces">
+	<ui:define name="head">
+		<f:metadata>
+			<s:viewAction action="#{stateBean.setMySubmissionsView(true)}" />
+			<s:viewAction action="#{cssBean.loadTab(1)}" />
+		</f:metadata>
+	</ui:define>
+	<ui:define name="content">
+		<h:form>
+			<rich:panel style="margin-top: 12px;width:280px;">
+				<f:facet name="header">
+					<h:outputText value="Select project..."></h:outputText>
+				</f:facet>
+				<table>
+					<tr>
+						<td><rich:select enableManualInput="true"
+								value="#{stateBean.userSurveyForSubmissions}"
+								defaultLabel="start typing to select"
+								converter="surveyConverter">
+								<f:selectItems
+									value="#{stateBean.getAvailableSurveys(identity.user.id)}"
+									var="n" itemLabel="#{n.name}" />
+							</rich:select></td>
+						<td><h:commandButton value="Load"
+								action="#{stateBean.loadUserSubmissions(identity.user.id)}"
+								style="margin-top: 8px;" /></td>
+					</tr>
+				</table>
+			</rich:panel>
+			<rich:panel style="margin-top: 12px;width: 100%;">
+				<f:facet name="header">
+					<h:outputText value="Submissions"></h:outputText>
+				</f:facet>
+				<h:panelGroup rendered="#{empty stateBean.userSubmissions}">
+					<em>No submissions available for this project.</em>
+				</h:panelGroup>
+				<rich:dataTable keepSaved="true" id="table" var="s"
+					rendered="#{not empty stateBean.userSubmissions}"
+					value="#{stateBean.userSubmissions}" rows="20" style="width:100%;">
+					<rich:column sortBy="#{s.date}" id="date"
+						sortOrder="#{submissionSortingBean.dateOrder}"
+						filter="#{submissionFilteringBean.dateFilterImpl}">
+						<f:facet name="header">
+							<a4j:commandLink value="Date" render="table"
+								action="#{submissionSortingBean.sortByDate}" />
+							<h:outputText value=": " />
+							<h:inputText value="#{submissionFilteringBean.dateFilter}">
+								<a4j:ajax event="blur" render="table" execute="@this" />
+							</h:inputText>
+						</f:facet>
+						<h:outputText value="#{s.date}" />
+					</rich:column>
+					<rich:column id="point" sortBy="#{s.point.address}"
+						sortOrder="#{submissionSortingBean.pointOrder}"
+						filter="#{submissionFilteringBean.addressFilterImpl}">
+						<f:facet name="header">
+							<a4j:commandLink value="Location" render="table"
+								action="#{submissionSortingBean.sortByPoint}" />
+							<h:outputText value=": " />
+							<h:inputText value="#{submissionFilteringBean.addressFilter}">
+								<a4j:ajax event="blur" render="table" execute="@this" />
+							</h:inputText>
+						</f:facet>
+						<h:outputText value="#{s.point.address}" />
+					</rich:column>
+					<rich:column id="actions">
+						<f:facet name="header">
+							<h:outputText value="Actions" />
+						</f:facet>
+						<h:commandLink value="VIEW"
+							action="#{stateBean.selectSubmission(s.id)}" />
+						<h:outputText value=" " />
+						<a href="#{request.contextPath}/rest/submissions/#{s.id}/">XML</a>
+						<h:outputText value=" " />
+						<a href="#{request.contextPath}/csv?sum=#{s.id}">CSV</a>
+					</rich:column>
+					<f:facet name="footer">
+						<rich:dataScroller id="scroller" />
+					</f:facet>
+				</rich:dataTable>
+			</rich:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>

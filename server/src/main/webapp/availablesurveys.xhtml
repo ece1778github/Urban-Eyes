@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	template="/WEB-INF/templates/default.xhtml"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a4j="http://richfaces.org/a4j"
+	xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:s="http://jboss.org/seam/faces">
+	<ui:define name="head">
+		<f:metadata>
+			<s:viewAction action="#{stateBean.setMySurveysView(false)}" />
+			<s:viewAction action="#{cssBean.loadTab(3)}" />
+		</f:metadata>
+	</ui:define>
+	<ui:define name="content">
+		<h:form>
+			<rich:panel style="margin-top: 12px;width: 100%;">
+				<ui:param name="mysurveys"
+					value="#{stateBean.getAvailableSurveys(identity.user.id)}" />
+				<f:facet name="header">
+					<h:outputText value="Surveys I can contribute to..."></h:outputText>
+				</f:facet>
+				<h:panelGroup rendered="#{empty mysurveys}">
+					<em>No surveys available.</em>
+				</h:panelGroup>
+				<rich:dataTable keepSaved="true" id="table" var="s"
+					rendered="#{not empty mysurveys}" value="#{mysurveys}" rows="20"
+					style="width:100%;">
+					<rich:column sortBy="#{s.name}" id="name"
+						sortOrder="#{surveySortingBean.nameOrder}"
+						filter="#{surveyFilteringBean.nameFilterImpl}">
+						<f:facet name="header">
+							<a4j:commandLink value="Name" render="table"
+								action="#{surveySortingBean.sortByName}" />
+							<h:outputText value=": " />
+							<h:inputText value="#{surveyFilteringBean.nameFilter}">
+								<a4j:ajax event="blur" render="table" execute="@this" />
+							</h:inputText>
+						</f:facet>
+						<h:outputText value="#{s.name}" />
+					</rich:column>
+					<rich:column sortBy="#{s.description}" id="description"
+						sortOrder="#{surveySortingBean.descriptionOrder}"
+						filter="#{surveyFilteringBean.descriptionFilterImpl}">
+						<f:facet name="header">
+							<a4j:commandLink value="Description" render="table"
+								action="#{surveySortingBean.sortByDescription}" />
+							<h:outputText value=": " />
+							<h:inputText value="#{surveyFilteringBean.descriptionFilter}">
+								<a4j:ajax event="blur" render="table" execute="@this" />
+							</h:inputText>
+						</f:facet>
+						<h:outputText value="#{s.description}" />
+					</rich:column>
+					<rich:column sortBy="#{s.priv}" id="priv"
+						sortOrder="#{surveySortingBean.privOrder}"
+						filter="#{surveyFilteringBean.privateFilterImpl}">
+						<f:facet name="header">
+							<a4j:commandLink value="Private" render="table"
+								action="#{surveySortingBean.sortByPrivate}" />
+							<h:outputText value=": " />
+							<h:inputText value="#{surveyFilteringBean.privateFilter}">
+								<a4j:ajax event="blur" render="table" execute="@this" />
+							</h:inputText>
+						</f:facet>
+						<h:outputText value="#{s.priv}" />
+					</rich:column>
+					<rich:column id="actions">
+						<f:facet name="header">
+							<h:outputText value="Actions" />
+						</f:facet>
+						<h:commandLink value="VIEW"
+							action="#{stateBean.selectSurvey(s.id, false, false)}" />
+						<h:outputText value=" " />
+						<a href="#{request.contextPath}/rest/surveys/#{s.id}/">XML</a>
+						<h:outputText value=" " />
+						<a href="#{request.contextPath}/csv?sur=#{s.id}">CSV</a>
+					</rich:column>
+					<f:facet name="footer">
+						<rich:dataScroller id="scroller" />
+					</f:facet>
+				</rich:dataTable>
+			</rich:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
